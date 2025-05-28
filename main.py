@@ -1,5 +1,3 @@
-# This example requires the 'message_content' intent.
-
 import discord
 import dotenv
 import os
@@ -16,7 +14,7 @@ async def on_ready():
     print(f'We have logged in as {client.user}')
 
 @client.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
