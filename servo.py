@@ -1,31 +1,22 @@
-import RPi.GPIO as gpio
-from time import sleep
+import time
+import pigpio
 
-SERVO_PIN = 11
-pwm = None
-
-def setAngle(angle):
-    duty = angle / 18 + 2.5
-    pwm.ChangeDutyCycle(duty)
-    sleep(0.3)
+SERVO_PIN = 4
 
 def main():
-    global pwm
-    gpio.setmode(gpio.BOARD)
-    gpio.setup(SERVO_PIN, gpio.OUT)
-    pwm = gpio.PWM(SERVO_PIN, 50)
-    pwm.start(0)
+    pwm = pigpio.pi()
+    pwm.set_mode(SERVO_PIN, pigpio.OUTPUT)
+    pwm.set_PWM_frequency(SERVO_PIN, 50)
 
-    setAngle(0)
-    setAngle(179)
+    pwm.set_servo_pulsewidth(SERVO_PIN, 500)
+    time.sleep(0.3)
+    pwm.set_servo_pulsewidth(SERVO_PIN, 2500)
+    time.sleep(1)
+
+    pwm.set_PWM_dutycycle(SERVO_PIN, 0)
+    pwm.set_PWM_frequency(SERVO_PIN, 0)
+
 
 if __name__ == "__main__":
-    try:
-        main()
-    finally:
-        print("\nRunning cleanup\n")
-        if pwm:
-            pwm.stop()
-        gpio.cleanup()
-
+    main()
 
