@@ -4,7 +4,7 @@
 Description=GlasgowHackerspace doorbell bot
 
 [Service]
-ExecStart=/opt/doorbell/.venv/bin/python3 /opt/doorbell/main.py
+ExecStart=/home/jonas/doorbell/.venv/bin/python3 /home/jonas/doorbell/main.py
 
 # Disable Python's buffering of STDOUT and STDERR, so that output from the
 # service shows up immediately in systemd's logs

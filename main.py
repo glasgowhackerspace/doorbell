@@ -10,12 +10,16 @@ import dotenv
 # to control servo motor
 import pigpio
 # to write to e-paper display
+
+REPO_PATH = "/home/jonas/doorbell/"
+
 from PIL import Image,ImageDraw,ImageFont
-sys.path.append("e-Paper/RaspberryPi_JetsonNano/python/lib/")
+sys.path.append(REPO_PATH + "e-Paper/RaspberryPi_JetsonNano/python/lib/")
 from waveshare_epd import epd2in13_V4
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
+discord.VoiceClient.warn_nacl = False
 
 # GPIO 4, header pin 7
 SERVO_PIN = 4
@@ -29,11 +33,11 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 
-FONT_FILE = 'AtkinsonHyperlegibleMonoVF-Variable.ttf'
-FONT15 = ImageFont.truetype(FONT_FILE, size=15, encoding='unic')
-FONT15.set_variation_by_name('ExtraBold')
-FONT24 = ImageFont.truetype(FONT_FILE, size=24, encoding='unic')
-FONT24.set_variation_by_name('ExtraBold')
+FONT_FILE = REPO_PATH + "AtkinsonHyperlegibleMonoVF-Variable.ttf"
+FONT15 = ImageFont.truetype(FONT_FILE, size=15, encoding="unic")
+FONT15.set_variation_by_name("ExtraBold")
+FONT24 = ImageFont.truetype(FONT_FILE, size=24, encoding="unic")
+FONT24.set_variation_by_name("ExtraBold")
 
 
 def main():
@@ -67,14 +71,14 @@ async def on_message(message: discord.Message):
 
 
 def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int):
-    lines = ['']
+    lines = [""]
     for word in text.split():
-        line = f'{lines[-1]} {word}'.strip()
+        line = f"{lines[-1]} {word}".strip()
         if font.getlength(line) <= line_length:
             lines[-1] = line
         else:
             lines.append(word)
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 def role_mentioned(role: str, message: discord.Message) -> bool:
@@ -87,7 +91,7 @@ def user_mentioned(username: str, message: discord.Message) -> bool:
 
 def display_message(heading: str, body: str):
     epd.init()
-    image = Image.new('1', (epd.height, epd.width), 255)
+    image = Image.new("1", (epd.height, epd.width), 255)
     draw = ImageDraw.Draw(image)
     draw.text((0, 0), heading, font=FONT24, fill=0)
     time = dt.strftime(dt.now(), "%H:%M")
