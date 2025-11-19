@@ -45,7 +45,7 @@ def main():
 
     epd = epd2in13_V4.EPD()
     epd.init()
-    display_message("d[•_•]b", "Listening for @keyholder mentions on Discord")
+    display_message("d[•_•]b", "Listening for @doorbell mentions on Discord")
 
     client.run(os.getenv("DISCORD_BOT_TOKEN"))
 
@@ -55,12 +55,14 @@ async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
-    keyholder_mentioned = any([role.name == "keyholder" for role in message.role_mentions])
-    if keyholder_mentioned:
-        logger.info(f"{message.author.name} mentioned @keyholder [{message.clean_content}]")
+    logger.debug(f"detected message: [{message}] role_mentions: [{message.role_mentions}] mentions: [{message.mentions}] content: [{message.clean_content}]")
+
+    if user_mentioned("doorbell", message) or role_mentioned("doorbell", message):
+        logger.info(f"{message.author.name} mentioned @doorbel [{message.clean_content}]")
 
         ring_bell()
-        display_message(message.author.nick or message.author.name, message.clean_content)
+        logger.debug(f"{message.author.nick=}, {message.author.name=} {message.author.global_name=}")
+        display_message(message.author.nick or message.author.global_name or message.author.name, message.clean_content)
         await message.add_reaction("🔔")
 
 
@@ -73,6 +75,14 @@ def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int):
         else:
             lines.append(word)
     return '\n'.join(lines)
+
+
+def role_mentioned(role: str, message: discord.Message) -> bool:
+    return any([r.name == role for r in message.role_mentions])
+
+def user_mentioned(username: str, message: discord.Message) -> bool:
+    return any([username == u.name for u in message.mentions])
+
 
 
 def display_message(heading: str, body: str):

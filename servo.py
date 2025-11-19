@@ -11,7 +11,7 @@ def main():
     pwm.set_servo_pulsewidth(SERVO_PIN, 500)
     time.sleep(0.3)
     pwm.set_servo_pulsewidth(SERVO_PIN, 2500)
-    time.sleep(1)
+    time.sleep(0.5)
 
     pwm.set_PWM_dutycycle(SERVO_PIN, 0)
     pwm.set_PWM_frequency(SERVO_PIN, 0)
