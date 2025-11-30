@@ -11,7 +11,7 @@ import dotenv
 import pigpio
 # to write to e-paper display
 
-REPO_PATH = "/home/jonas/doorbell/"
+REPO_PATH = "/home/ding/doorbell/"
 
 from PIL import Image,ImageDraw,ImageFont
 sys.path.append(REPO_PATH + "e-Paper/RaspberryPi_JetsonNano/python/lib/")
@@ -84,9 +84,9 @@ def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int):
 def role_mentioned(role: str, message: discord.Message) -> bool:
     return any([r.name == role for r in message.role_mentions])
 
+
 def user_mentioned(username: str, message: discord.Message) -> bool:
     return any([username == u.name for u in message.mentions])
-
 
 
 def display_message(heading: str, body: str):
