@@ -1,0 +1,85 @@
+---
+- name: GlasHack doorbell pi setup
+  hosts: doorbell
+  become: true
+
+
+  pre_tasks:
+    - name: Upgrade apt packages.
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        name: "*"
+        state: latest
+      become: true
+
+
+  tasks:
+    - name: Create 'ding' user.
+      user:
+        name: ding
+        groups: gpio, spi
+
+    - name: Clone the glasgowhackerspace/doorbell repo.
+      git:
+        repo: 'https://github.com/glasgowhackerspace/doorbell.git'
+        dest: /home/ding/doorbell
+      become_user: ding
+
+    - name: Install python requirements.
+      pip:
+        chdir: /home/ding/doorbell
+        requirements: requirements.txt
+        virtualenv: .venv
+        virtualenv_command: "python3 -m venv"
+      become_user: ding
+
+    - name: Copy .env file to the host.
+      copy:
+        src: ../.env
+        dest: /home/ding/doorbell/.env
+        owner: ding
+        group: ding
+        mode: u=rw,g=rw,o=
+
+    - name: Symlink doorbell_bot.service to '/etc/systemd/system/'.
+      file:
+        src: /home/ding/doorbell/doorbell_bot.service
+        dest: /etc/systemd/system/doorbell_bot.service
+        owner: root
+        group: root
+        state: link
+
+    - name: Install pigpio.
+      apt:
+        name: pigpio
+        state: latest
+
+    - name: Enable and start pigpiod service.
+      service:
+        name: pigpiod
+        state: started
+        enabled: true
+
+    - name: Enable and start doorbell_bot service.
+      service:
+        name: doorbell_bot
+        state: started
+        enabled: true
+
+    - name: Add gpio-shutdown to boot config.txt.
+      lineinfile:
+        path: /boot/firmware/config.txt
+        regexp: "^dtoverlay=gpio-shutdown"
+        line: dtoverlay=gpio-shutdown
+      notify: reboot pi
+
+
+  handlers:
+    - name: reboot pi
+      reboot:
+
+    - name: restart doorbell service
+      service:
+        name: doorbell_bot
+        state: restarted
