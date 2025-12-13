@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+import asyncio
 # for discord bot
 import discord
 import dotenv
@@ -37,7 +38,7 @@ FONT24 = ImageFont.truetype(FONT_FILE, size=24, encoding="unic")
 FONT24.set_variation_by_name("ExtraBold")
 
 
-def main():
+async def main():
     global pwm
     global epd
     pwm = pigpio.pi()
@@ -46,9 +47,9 @@ def main():
 
     epd = EP.EPD()
     epd.init()
-    display_message("d[•_•]b", "Listening for @doorbell mentions on Discord")
+    await display_message("d[•_•]b", "Listening for @doorbell mentions on Discord")
 
-    client.run(os.getenv("DISCORD_BOT_TOKEN"))
+    await client.start(os.getenv("DISCORD_BOT_TOKEN"))
 
 
 @client.event
@@ -61,7 +62,7 @@ async def on_message(message: discord.Message):
     if user_mentioned("doorbell", message) or role_mentioned("doorbell", message):
         logger.info(f"{message.author.name} mentioned @doorbel [{message.clean_content}]")
 
-        with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg:
             t1 = tg.create_task(ring_bell())
             t2 = tg.create_task(display_message(message.author.nick or message.author.global_name or message.author.name, message.clean_content))
             t3 = tg.create_task(message.add_reaction("🔔"))
@@ -100,18 +101,18 @@ async def display_message(heading: str, body: str):
 
 async def ring_bell():
     pwm.set_servo_pulsewidth(SERVO_PIN, 500)
-    asyncio.sleep(0.3)
+    await asyncio.sleep(0.3)
     pwm.set_servo_pulsewidth(SERVO_PIN, 2500)
 
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     finally:
         logger.info("running cleanup")
         if pwm:
             pwm.set_PWM_dutycycle(SERVO_PIN, 0)
             pwm.set_PWM_frequency(SERVO_PIN, 0)
         if epd:
-            display_message("(-.-) Zzz", "Sleeping")
+            asyncio.run(display_message("(-.-) Zzz", "Sleeping"))
             EP.epdconfig.module_exit(cleanup=True)
