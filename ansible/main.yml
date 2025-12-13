@@ -2,7 +2,8 @@
 - name: GlasHack doorbell pi setup
   hosts: doorbell
   become: true
-
+  vars:
+    lib_path: /home/ding
 
   pre_tasks:
     - name: Upgrade apt packages.
@@ -15,15 +16,67 @@
 
 
   tasks:
-    - name: Create 'ding' user.
-      user:
-        name: ding
-        groups: gpio, spi
+#    - name: Create 'ding' user.
+#      user:
+#        name: ding
+#        groups: gpio, spi
+
+    - name: Instal gpio library build requirements.
+      apt:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - swig
+        - python3-dev
+        - python3-setuptools
+
+    - name: Download and extract gpio libraries.
+      unarchive:
+        remote_src: yes
+        src: "{{ item.src }}"
+        dest: "{{ lib_path }}"
+        creates: "{{ lib_path}}/{{ item.creates }}"
+      loop:
+        - src: "https://github.com/joan2937/lg/archive/master.zip"
+          creates: "lg-master"
+        - src: "https://github.com/joan2937/pigpio/archive/master.zip"
+          creates: "pigpio-master"
+
+    - name: Build the gpio libraries.
+      community.general.make:
+        chdir: "{{ item }}"
+      loop:
+        - "{{ lib_path }}/lg-master"
+        - "{{ lib_path }}/pigpio-master"
+
+    - name: Install the gpio libraries.
+      community.general.make:
+        chdir: "{{ item }}"
+        target: install
+      become: true
+      loop:
+        - "{{ lib_path }}/lg-master"
+        - "{{ lib_path }}/pigpio-master"
+
+    - name: Copy patched pigpiod.service file.
+      copy:
+        src: ../pigpiod.service
+        dest: /etc/systemd/system/pigpiod.service
+        mode: u+rwx,g+rx,o+rx
+      become: true
+
+    - name: Enable and start pigpiod service.
+      service:
+        name: pigpiod
+        state: started
+        enabled: true
+      become: true
 
     - name: Clone the glasgowhackerspace/doorbell repo.
       git:
         repo: 'https://github.com/glasgowhackerspace/doorbell.git'
-        dest: /home/ding/doorbell
+        version: testing
+        dest: "{{ lib_path }}/doorbell"
       become_user: ding
 
     - name: Install python requirements.
@@ -49,17 +102,6 @@
         owner: root
         group: root
         state: link
-
-    - name: Install pigpio.
-      apt:
-        name: pigpio
-        state: latest
-
-    - name: Enable and start pigpiod service.
-      service:
-        name: pigpiod
-        state: started
-        enabled: true
 
     - name: Enable and start doorbell_bot service.
       service:
