@@ -1,2 +1,2 @@
 [doorbell]
-doorbell.local ansible_user=ding
+10.0.100.175 ansible_user=ding

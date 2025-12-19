@@ -5,6 +5,8 @@ After=multi-user.target
 
 [Service]
 Type=simple
+WorkingDirectory=/home/ding/doorbell
+User=ding
 ExecStart=/home/ding/doorbell/.venv/bin/python3 /home/ding/doorbell/main.py
 # Disable Python's buffering of STDOUT and STDERR, so that output from the
 # service shows up immediately in systemd's logs
@@ -13,7 +15,7 @@ Environment=PYTHONUNBUFFERED=1
 KillSignal=SIGINT
 
 # Automatically restart the service if it crashes
-Restart=on-failure
+#Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
