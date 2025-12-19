@@ -67,10 +67,11 @@
       become: true
 
     - name: Enable and start pigpiod service.
-      service:
+      systemd_service:
         name: pigpiod
         state: started
         enabled: true
+        daemon_reload: true
       become: true
 
     - name: Clone the glasgowhackerspace/doorbell repo.
@@ -106,10 +107,11 @@
       notify: restart doorbell service
 
     - name: Enable and start doorbell_bot service.
-      service:
+      systemd_service:
         name: doorbell_bot
         state: started
         enabled: true
+        daemon_reload: true
 
     - name: Add gpio-shutdown to boot config.txt.
       lineinfile:
@@ -129,6 +131,7 @@
       reboot:
 
     - name: restart doorbell service
-      service:
+      systemd_service:
         name: doorbell_bot
         state: restarted
+        daemon_reload: true
