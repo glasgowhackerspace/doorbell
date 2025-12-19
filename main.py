@@ -45,11 +45,15 @@ async def main():
     pwm.set_mode(SERVO_PIN, pigpio.OUTPUT)
     pwm.set_PWM_frequency(SERVO_PIN, 50)
 
-    epd = EP.EPD()
-    epd.init()
-    await display_message("d[•_•]b", "Listening for @doorbell mentions on Discord")
+    try:
+        epd = EP.EPD()
+        epd.init()
+        display_message("d[•_•]b", "Listening for @doorbell mentions on Discord")
+    except Exception as e:
+        logger.warning("unable to interact with the e-paper display")
+        logger.warning(e)
 
-    await client.start(os.getenv("DISCORD_BOT_TOKEN"))
+    client.run(os.getenv("DISCORD_BOT_TOKEN"))
 
 
 @client.event
@@ -62,10 +66,13 @@ async def on_message(message: discord.Message):
     if user_mentioned("doorbell", message) or role_mentioned("doorbell", message):
         logger.info(f"{message.author.name} mentioned @doorbel [{message.clean_content}]")
 
+        # await the following tasks together
         async with asyncio.TaskGroup() as tg:
-            t1 = tg.create_task(ring_bell())
-            t2 = tg.create_task(display_message(message.author.nick or message.author.global_name or message.author.name, message.clean_content))
-            t3 = tg.create_task(message.add_reaction("🔔"))
+            tg.create_task(ring_bell())
+            tg.create_task(message.add_reaction("🔔"))
+
+        if epd:
+            display_message(message.author.nick or message.author.global_name or message.author.name, message.clean_content)
 
 
 def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int):
@@ -87,7 +94,7 @@ def user_mentioned(username: str, message: discord.Message) -> bool:
     return any([username == u.name for u in message.mentions])
 
 
-async def display_message(heading: str, body: str):
+def display_message(heading: str, body: str):
     epd.init() # wake the display from sleep
     image = Image.new("1", (epd.height, epd.width), 255)
     draw = ImageDraw.Draw(image)
@@ -107,12 +114,12 @@ async def ring_bell():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     finally:
         logger.info("running cleanup")
         if pwm:
             pwm.set_PWM_dutycycle(SERVO_PIN, 0)
             pwm.set_PWM_frequency(SERVO_PIN, 0)
         if epd:
-            asyncio.run(display_message("(-.-) Zzz", "Sleeping"))
+            display_message("(-.-) Zzz", "Sleeping")
             EP.epdconfig.module_exit(cleanup=True)
