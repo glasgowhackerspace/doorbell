@@ -38,7 +38,7 @@ FONT24 = ImageFont.truetype(FONT_FILE, size=24, encoding="unic")
 FONT24.set_variation_by_name("ExtraBold")
 
 
-async def main():
+def main():
     global pwm
     global epd
     pwm = pigpio.pi()
