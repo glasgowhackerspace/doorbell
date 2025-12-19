@@ -77,7 +77,7 @@
     - name: Clone the glasgowhackerspace/doorbell repo.
       git:
         repo: 'https://github.com/glasgowhackerspace/doorbell.git'
-        version: testing
+        version: main
         dest: "{{ lib_path }}/doorbell"
       become_user: ding
 
