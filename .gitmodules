@@ -1,4 +1,0 @@
-[submodule "e-Paper"]
-	path = e-Paper
-    url = https://github.com/waveshareteam/e-Paper
-    ignore = dirty
