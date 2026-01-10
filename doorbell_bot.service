@@ -15,7 +15,10 @@ Environment=PYTHONUNBUFFERED=1
 KillSignal=SIGINT
 
 # Automatically restart the service if it crashes
-#Restart=on-failure
+Restart=on-failure
+# Unit may only be (re)started a max of 5 times in 30 seconds
+StartLimitIntervalSec=30
+StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target

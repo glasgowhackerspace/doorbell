@@ -49,6 +49,7 @@
       loop:
         - "{{ lib_path }}/lg-master"
         - "{{ lib_path }}/pigpio-master"
+      register: build_libs
 
     - name: Install the gpio libraries.
       community.general.make:
@@ -58,6 +59,7 @@
       loop:
         - "{{ lib_path }}/lg-master"
         - "{{ lib_path }}/pigpio-master"
+      when: build_libs.changed
 
     - name: Copy patched pigpiod.service file.
       copy:
