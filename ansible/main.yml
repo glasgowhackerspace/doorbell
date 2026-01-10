@@ -4,6 +4,7 @@
   become: true
   vars:
     lib_path: /home/ding
+    git_branch: main
 
   pre_tasks:
     - name: Upgrade apt packages.
@@ -79,7 +80,7 @@
     - name: Clone the glasgowhackerspace/doorbell repo.
       git:
         repo: 'https://github.com/glasgowhackerspace/doorbell.git'
-        version: main
+        version: "{{ git_branch }}"
         dest: "{{ lib_path }}/doorbell"
       become_user: ding
 
